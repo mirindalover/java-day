@@ -1,5 +1,7 @@
 ### HashMap
 
+> 理想下，HashMap的存取都是O(1),由于数组长度有限，所以不同的值会放到同一个桶，即hash冲突
+
 >  JDK1.8前，由数组+链表组成，链表主要解决hash冲突
 
 > JDK1.8后，由数组+链表组成。当链表长度大余阈值(8)时，并且数组长度大于64(小于时会有限扩展数组长度)，链表转换成红黑树，减少搜索时间
@@ -292,10 +294,7 @@ void transfer(Entry[] newTable, boolean rehash) {
 
 多线程造成了循环链表，当get、put、或者resize的时候都会导致死循环
 
+##### 哈希碰撞拒绝服务攻击 
 
+> 通过精心构造数据，使得所有数据全部碰撞，人为将哈希表变成一个退化的单链表，此时哈希表各种操作的时间均提升了一个数量级，因此会消耗大量CPU资源，导致系统无法快速响应请求，从而达到拒绝服务攻击（DoS）的目的
 
-https://snailclimb.gitee.io/javaguide/#/docs/java/collection/HashMap(JDK1.8)%E6%BA%90%E7%A0%81+%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%88%86%E6%9E%90
-
-https://zhangzw.com/posts/20190925.html
-
-https://blog.csdn.net/pange1991/article/details/82347284
