@@ -6,8 +6,6 @@
 
 #### HashMap源码分析
 
-- put、get、resize方法
-
 ##### HashMap重要的参数变量
 
 ```java
@@ -54,7 +52,7 @@ static final int hash(Object key) {
 
 ##### 数组长度为什么使用2的幂
 
-数据存放在数组的位置是0~n-1。2的幂-1正好是000..111..;与运算可以根据hash得到一个0~n-1的值
+> 数据存放在数组的位置是0~n-1。2的幂-1正好是000..1..11;与运算可以根据hash得到一个0~n-1的值
 
 ##### put方法
 
@@ -255,9 +253,46 @@ final Node<K,V>[] resize() {
 
 不为0，那一定数组位置一定在5+16
 
+#### HashMap的问题
+
+##### JDK1.7链表采用头插法，造成死循环
+
+```java
+void transfer(Entry[] newTable, boolean rehash) {
+    int newCapacity = newTable.length;
+    for (Entry<K,V> e : table) {
+        while(null != e) {
+            //持有链表的next，为了下次循环使用--问题所在
+            Entry<K,V> next = e.next;
+            if (rehash) {
+                e.hash = null == e.key ? 0 : hash(e.key);
+            }
+            int i = indexFor(e.hash, newCapacity);
+            e.next = newTable[i];
+            newTable[i] = e;
+            e = next;
+        }
+    }
+}
+```
+
+1.7采用头插法，，在多线程时会导致死循环。下面按步骤说明如何出现的
+
+假设数组中某个链表 A->B
+
+1、线程1、2同时put，发现需要扩容；线程1走到代码处暂停，cpu去执行线程2==此时线程1:e=A,next=B
+
+2、线程2执行完扩容操作==由于采用的头插法，此时的链表 B->A
+
+3、继续执行线程1,第一次循环，e=A,next=B	==新链表A
+
+4、第二次循环,e=B,由于线程1的操作导致B的next是A,next=A	==新链表B->A
+
+5、第三次循环,e=A,next=null	==新链表	A->B(next=A)
+
+多线程造成了循环链表，当get、put、或者resize的时候都会导致死循环
 
 
-JDK1.7链表采用头插法，如何造成的死循环。1.8为什么不会
 
 https://snailclimb.gitee.io/javaguide/#/docs/java/collection/HashMap(JDK1.8)%E6%BA%90%E7%A0%81+%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E5%88%86%E6%9E%90
 
