@@ -191,4 +191,4 @@ score用于排序；level[]是跳跃表的精髓:程序根据幂次定律(越大
 
 支持平均O(logN)、最坏O(N)复杂度的节点查找
 
-[跳跃表结构](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/1-redis/resource/skipList.png)
+![跳跃表结构](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/1-redis/resource/skipList.png)
