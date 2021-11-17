@@ -127,6 +127,17 @@ static int _dictExpandIfNeeded(dict *d)
 }
 ```
 
+```c
+int htNeedsResize(dict *dict) {/*代码3.0前在redis.c。后在server.c*/
+    long long size, used;
+
+    size = dictSlots(dict);
+    used = dictSize(dict);
+    return (size > DICT_HT_INITIAL_SIZE &&
+            (used*100/size < HASHTABLE_MIN_FILL));
+}
+```
+
 没有执行BGSAVE和BGREWRITEAOF指令(持久化的时候，需要fork操作，这个时候不会分配内存)的情况下，hash表的负载因子大于等于1的时候进行扩容。
 正在执行BGSAVE和BGREWRITEAOF指令的情况下，hash表的负载因子大于等于5的时候进行扩容。
 负载因子小于0.1的时候，Redis自动开始对Hash表进行缩容操作。
@@ -155,3 +166,29 @@ static void _dictRehashStep(dict *d) {
 - rehash中时，取值先找ht[0],再找ht[1]
 - put时直接放到ht[1]
 - rehash结束，交换ht[1]赋值给ht[0]，释放原来ht[0]的空间
+
+#### 跳跃表
+
+```c
+typedef struct zskiplistNode {
+    sds ele;
+    double score;
+    struct zskiplistNode *backward;
+    struct zskiplistLevel {
+        struct zskiplistNode *forward;
+        unsigned long span;
+    } level[];
+} zskiplistNode;
+
+typedef struct zskiplist {
+    struct zskiplistNode *header, *tail;
+    unsigned long length;
+    int level;
+} zskiplist;
+```
+
+score用于排序；level[]是跳跃表的精髓:程序根据幂次定律(越大的数出现的概率越小)随机生成一个介于1和32之间的值作为level数组的大小
+
+支持平均O(logN)、最坏O(N)复杂度的节点查找
+
+[跳跃表结构](https://github.com/mirindalover/java-day/edit/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/1-redis/resource/skiplist.png)
