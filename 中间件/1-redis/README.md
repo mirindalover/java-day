@@ -4,6 +4,14 @@
 
 String、List、Set、Sorted Set、Hash、BitMap
 
+#### Zset 是如何实现的
+
+Object的encoding可以是：ziplist、skiplist
+
+1、ziplist：元素个数小于128个；所有元素长度小于64字节
+
+2、skiplist：字典+跳表。字典的键保存元素的值，字典的值则保存元素的分值；跳跃表节点的 object 属性保存元素的值，跳跃表节点的 score 属性保存元素的分值。
+
 - Redis为啥快
 
 #### Redis的缓存雪崩、缓存击穿、缓存穿透
@@ -39,6 +47,25 @@ String、List、Set、Sorted Set、Hash、BitMap
 - Redis怎么做分布式锁
 - Redis的单线程模型
 - Redis的过期删除策略
+
+
+
+
+
+
+
+
+
+
+
+| API数据结构 | 限制                     | 底层数据结构                          |
+| ----------- | ------------------------ | ------------------------------------- |
+| string      | 512 MB                   | SDS                                   |
+| list        | 最大长度 2^{32}-1232−1   | quicklist                             |
+| set         | 最大容量 2^{32}-1232−1   | - intset（小整数集） - dict           |
+| sort set    | 最大容量 2^{32}-1232−1   | - ziplist（小集合） - dict + skiplist |
+| hash        | 最大KV容量 2^{32}-1232−1 | - ziplist（小集合） - dict            |
+| bitmap      | 512 MB                   | SDS                                   |
 
 ####  SDS(simple dynamic string)
 
@@ -167,6 +194,12 @@ static void _dictRehashStep(dict *d) {
 - put时直接放到ht[1]
 - rehash结束，交换ht[1]赋值给ht[0]，释放原来ht[0]的空间
 
+#### quickList
+
+quicklist 是由 ziplist 为节点组成的双向链表
+
+能维持数据项先后顺序的列表
+
 #### 跳跃表
 
 ```c
@@ -192,3 +225,82 @@ score用于排序；level[]是跳跃表的精髓:程序根据幂次定律(越大
 支持平均O(logN)、最坏O(N)复杂度的节点查找
 
 ![跳跃表结构](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/1-redis/resource/skipList.png)
+
+#### 压缩列表
+
+压缩列表(ziplist)本质上就是一个字节数组，是Redis为了节约内存而设计的一种线性数据结构，可以包含任意多个元素，每个元素可以是一个字节数组或一个整数
+
+| 0f 00 00 00 | 0c 00 00 00 | 02 00 | 00 f3 | 02 f6 | ff   |
+| ----------- | :---------- | ----- | ----- | ----- | ---- |
+| zlbytes     | zltail      | zllen | "2"   | "5"   | end  |
+
+- 1、**zlbytes**：压缩列表的字节长度，占4个字节，因此压缩列表最长(2^32)-1字节；
+- 2、**zltail**：压缩列表尾元素相对于压缩列表起始地址的偏移量，占4个字节；
+- 3、**zllen**：压缩列表的元素数目，占两个字节；那么当压缩列表的元素数目超过(2^16)-1需要遍历整个压缩列表才能获取到元素数目；
+- 4、**entryX**：压缩列表存储的若干个元素，可以为字节数组或者整数
+- 5、**zlend**：压缩列表的结尾，占一个字节，恒为0xFF
+
+##### entry
+
+组成
+
+- previous_entry_length：前元素的字节长度。占1个或者5个字节
+- encoding：content的元素的编码
+- content
+
+[encoding参考](https://segmentfault.com/a/1190000017328042)
+
+例子中使用的是最后一种 0001之间的数1101。真正结果需要-1
+
+- 缺点
+
+> ziplist很大时，每次插入修改需要realloc(重新分配空间),可能会导致内存拷贝
+>
+> ziplist数据大时，查找指定的数据性能很低，因为ziplist是遍历查找
+>
+> 连锁更新：由于previous_entry_length使用1或者5个字节，导致插入或者删除元素时，同时元素长度都在临界点(254--一个字节的长度)。会导致所有的元素进行连锁的重分配空间
+
+#### 整数集合
+
+内存连续的整数，且有序
+
+```c
+typedef struct intset {
+    uint32_t encoding;
+    uint32_t length;
+    int8_t contents[];
+} intset;
+```
+
+encoding：决定了contents数组中所有整数的类型，值可为INTSET_ENC_INT16、INTSET_ENC_INT32、INTSET_ENC_INT64
+
+##### 升级
+
+插入新元素时，类型需要升级。会吧所有的元素进行类型转换、时间复杂度为O(n)
+
+#### 对象
+
+```c
+typedef struct redisObject {
+    unsigned type:4;
+    unsigned encoding:4;
+    unsigned lru:LRU_BITS;
+    int refcount;
+    void *ptr;
+} robj;
+```
+
+1、type类型：字符串、列表、哈希、集合、有序集合对象(ZSet)
+
+2、encoding：ptr对应的数据结构编码
+
+3、refcount：引用计数。引用为0时，回收改对象
+
+> 对象没有循环引用的问题，，因为变量中不会再引用对象
+
+- 字符串：int、raw、embstr
+- 哈希：ziplist、hashtable
+- 列表：ziplist、linkedlist
+- 集合：intset、hashtable
+- 有序集合：ziplist、skiplist
+
