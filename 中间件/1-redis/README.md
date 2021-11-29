@@ -54,18 +54,54 @@ Object的encoding可以是：ziplist、skiplist
 
 
 
+#### 数据库
+
+```c
+typedef struct redisDb {
+    dict *dict;                 /* The keyspace for this DB */
+    dict *expires;              /* Timeout of keys with a timeout set */
+    dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP)*/
+    dict *ready_keys;           /* Blocked keys that received a PUSH */
+    dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
+    int id;                     /* Database ID */
+    long long avg_ttl;          /* Average TTL, just for stats */
+    unsigned long expires_cursor; /* Cursor of the active expire cycle. */
+    list *defrag_later;         /* List of key names to attempt to defrag one by one, gradually. */
+} redisDb;
+```
+
+dict保存键值对，expires保存键和过期时间，键使用同一个对象，不会造成内存消耗
+
+##### 过期键的删除策略
+
+> 惰性删除
+
+> 定期删除：取出一定数量随机键进行检查，删除过期键
+
+##### 持久化
+
+RDB：快照方式。把某个时间点的所有Redis数据保存到一个压缩的二进制文件中
+
+​	SAVE、BGSAVE可以制动触发保存
+
+AOF：
+
+> 只有在关闭 AOF 功能的情况下，才会使用 RDB 还原数据，否则优先使用 AOF 文件来还原数据
 
 
 
 
-| API数据结构 | 限制                     | 底层数据结构                          |
-| ----------- | ------------------------ | ------------------------------------- |
-| string      | 512 MB                   | SDS                                   |
-| list        | 最大长度 2^{32}-1232−1   | quicklist                             |
-| set         | 最大容量 2^{32}-1232−1   | - intset（小整数集） - dict           |
-| sort set    | 最大容量 2^{32}-1232−1   | - ziplist（小集合） - dict + skiplist |
-| hash        | 最大KV容量 2^{32}-1232−1 | - ziplist（小集合） - dict            |
-| bitmap      | 512 MB                   | SDS                                   |
+
+#### 数据结构
+
+| API数据结构 | 限制              | 底层数据结构                          |
+| ----------- | ----------------- | ------------------------------------- |
+| string      | 512 MB            | SDS                                   |
+| list        | 最大长度 2^32−1   | quicklist                             |
+| set         | 最大容量 2^32−1   | - intset（小整数集） - dict           |
+| sort set    | 最大容量 2^32−1   | - ziplist（小集合） - dict + skiplist |
+| hash        | 最大KV容量 2^32−1 | - ziplist（小集合） - dict            |
+| bitmap      | 512 MB            | SDS                                   |
 
 ####  SDS(simple dynamic string)
 
@@ -201,6 +237,8 @@ quicklist 是由 ziplist 为节点组成的双向链表
 能维持数据项先后顺序的列表
 
 #### 跳跃表
+
+一种有序数据结构，维持多个指向其他节点的指针
 
 ```c
 typedef struct zskiplistNode {
