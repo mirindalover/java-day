@@ -87,7 +87,7 @@ GCROOT
 
 ##### 收集器
 
-![垃圾收集器](https://github.com/mirindalover/java-day/tree/master/java/3-JVM/resource/gc.png)
+![垃圾收集器](https://github.com/mirindalover/java-day/blob/master/java/3-JVM/resource/gc.png)
 
 新生代收集器:Serial(串行)、ParNew、Parallel Scavenge.都采用复制算法
 
@@ -95,7 +95,7 @@ GCROOT
 
 G1:适用于新生代和老年代(复制+标记整理)
 
-![回收过程](https://github.com/mirindalover/java-day/tree/master/java/3-JVM/resource/gc_2.png)
+![回收过程](https://github.com/mirindalover/java-day/blob/master/java/3-JVM/resource/gc_2.png)
 
 串行并行,回收线程工作时都会stop the world
 
