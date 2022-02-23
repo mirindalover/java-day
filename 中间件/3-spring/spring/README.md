@@ -1,5 +1,7 @@
 #### Spring bean 生命周期
 
+![spring bean](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/3-spring/spring/resource/spring-bean.png)
+
 几个比较重要的扩展接口说明
 
 - BeanFactoryPostProcessor bean的声明处理类
@@ -70,3 +72,38 @@
 ​	b、配置文件中指定的destroy-method
 
 > 销毁的相关方法
+
+#### Spring AOP
+
+spring AOP是在运行时使用动态代理(cglib、jdk)，结合ioc实现
+
+aspectJ是在编译器实现代码插入
+
+#### Spring ioc
+
+一种思想(控制反转)，把bean交给ioc容器去管理
+
+#### Spring 解决循环依赖问题
+
+使用三级缓存
+
+singletonObjects 一级缓存，用于保存实例化、注入、初始化完成的bean实例（成品）
+
+earlySingletonObjects 二级缓存，用于保存实例化完成的bean实例（半成品）
+
+singletonFactories 三级缓存，用于保存bean创建工厂，以便于后面扩展有机会创建代理对象（方便AOP的扩展）
+
+##### @Async导致的循环依赖
+
+> @Async表示方法需要异步执行，最终生成的是一个代理类
+>
+> 如果A有@Async，AB循环依赖，A先加载，B加载时会把A放到二级缓存。但当A属性注入完扫描方法注解时生成代理类后，A初始化完成。检查Bean发现代理类和二级缓存中的A不一致
+
+#### Spring bean指定顺序加载
+
+使用@DependsOn指定先后关系
+
+使用@Lazy延迟加载
+
+修改文件名称，可能会改变加载顺序
+
