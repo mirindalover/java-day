@@ -481,15 +481,15 @@ typedef struct zskiplistNode {
     double score;
     struct zskiplistNode *backward;
     struct zskiplistLevel {
-        struct zskiplistNode *forward;
+        struct zskiplistNode *forward;//指向下个相同层的节点
         unsigned long span;
     } level[];
 } zskiplistNode;
 
 typedef struct zskiplist {
-    struct zskiplistNode *header, *tail;
-    unsigned long length;
-    int level;
+    struct zskiplistNode *header, *tail;//header一个32层的空节点，tail最后节点
+    unsigned long length;//节点数
+    int level;//最大level层
 } zskiplist;
 ```
 
@@ -498,6 +498,8 @@ score用于排序；level[]是跳跃表的精髓:程序根据幂次定律(越大
 支持平均O(logN)、最坏O(N)复杂度的节点查找
 
 ![跳跃表结构](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/1-redis/resource/skipList.png)
+
+查找过程：从最高层(level)开始找，如果下个节点score小继续往后，如果大，就下沉到下个level继续查找
 
 #### 压缩列表
 
