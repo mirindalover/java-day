@@ -241,7 +241,103 @@ redis是AP不是CP，所以会存在问题
 
 ##### Zookeeper
 
+一个分布式协调服务框架。主要解决分布式系统中各种通用一致性问题
 
+##### 架构
+
+提供了分布式存储系统：树形存储结构，节点(ZNode)。
+
+临时节点：1、集群与客户端的心跳，判断是否删除临时节点。2、Watcher机制，节点或者子节点状态变化，通知监听的客户端
+
+自动选举
+
+#### Kafka
+
+##### 整体架构
+
+1、kafka使用发布订阅模型。producer消息使用push方式给到集群中，consumer使用pull的方式从集群中拉取消息
+
+2、流程：producers->topic->topic_partition(leader)->consumers
+
+ZK在其中的作用：存储集群的meta等信息。
+
+如：/brokers/ids/：Broker信息；/brokers/topics/：多个主题；/brokers/topicA/partitions/：主题A下的分区(创建topic的时候指定了多少个)
+
+/brokers/topicA/partitions/0/state：临时节点，由leader broker创建。保存了leader和所有同步leader的follower的BrokerID
+
+3、每个Broker维护了一份和ZK中一样的元数据缓存，客户端获取是去Broker获取关心的元数据，保证生产和消费
+
+##### 存储机制
+
+Topic->多个Partition->多个segment(.index和.log)
+
+###### 查找对应offset的消息时
+
+offset维护在broker的一个内部主题_consumer_offsets
+
+先根据offset二分查找找到segment，根据segment的.index二分查找找到对应的索引或者小于offset最大的那个索引(由于是稀疏索引，可能没有指定offset)，再顺序扫描找到对应的message
+
+##### 分区策略
+
+生产者把消息发送到哪个分区：
+
+1、可以指定分区
+
+2、基于消息key的分配。即消息key的hash来计算分区
+
+3、轮询策略
+
+消费者消费哪个分区：
+
+1、Range分配：按topic。分区/消费线程。除不尽，前面几个消费者多消费一个分区。消费者多会出现不消费的情况。缺点：根据topic来分，当有多个topic时可能第一个一直多
+
+2、RoundRobinAssignor 轮询分区：把consumer组的所有topic和consumer列出，进行轮询分配。缺点：当消费者订阅的topic不同时，轮询可能会，比如一个消费者订阅了所有的topic，他分配的可能会多
+
+3、Sticky策略：原则为，a、分区的分配尽可能均匀。b、分配的分区尽可能与上次分配一致
+
+##### Kafka高性能IO
+
+1、批处理：send消息是批量发送，批量存储、批量消费
+
+2、保存磁盘是顺序读写
+
+3、利用操作系统的PageCache来缓存数据(其实是kafka的特性，生产消息后，立马会有消费)
+
+4、零拷贝：文件->内核缓冲区->内存->socket。内存这一步是多余的，因为不需要对消息进行处理，所以可以使用零拷贝技术(sendfile)
+
+##### 高可用
+
+副本机制，或者Leader Follower机制。Follower采用pull的模式获取消息
+
+##### 消息不丢失
+
+kafka有3中ack机制：0：不等待应答；1等待leader应答；-1等待leader同步给follower后应答(可能会重复)
+
+##### 分布式事务
+
+加入了事务协调器。
+
+1、producer开启事务时去协调器获取事务id
+
+2、发送消息前，把Topic、Partition发送给协调器
+
+3、发送消息到broker(消息是未提交的消息，消费者读取时会缓存起来，等待commit消息)。同时发送消息的offset给协调器
+
+4、提交事务
+
+5、协调者发送事务结束消息给每个分区
+
+
+
+常见问题：
+
+##### 发送有序消息
+
+1、指定partitionKey，同类消息写入同一个partition中
+
+2、利用Producer幂等性。添加PID和Sequence Number(单调递增)。Broker只接收大一的消息，大的消息拒绝，那Producer会重试。小的消息直接丢失(说明有重复)
+
+3、消费端，需要判断相同的key当到同一个队列中去处理
 
 #### 扩展
 
