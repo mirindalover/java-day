@@ -39,7 +39,9 @@
 老年代：Serial(标记整理)、Parallel(标记整理)、CMS(标记清除)
 
 G1:适用于新生代和老年代(复制+标记整理)：分区：新生代(Eden、Surivivor)、老年代、大对象(连续的块)
-G1的回收：YGC、MixedGC(Y、Old(根据设置回收时间选择回收的多少)、大对象)、FullGC
+G1的回收：YGC、MixedGC(Y、Old(根据设置回收时间选择回收的多少)、大对象、FullGC
+
+G1也是2阶段标记，然后使用复制来进行回收。回收根据设置的stw时间决定回收部分region
 
 https://zhuanlan.zhihu.com/p/83804324
 
@@ -61,6 +63,11 @@ CMS：是为了影响用户时间最短，回收的某个阶段可以用户线�
 
 ##### 线程池
 
+参数：核心线程数、最大线程数、keepalivetime、队列、拒绝策略
+
+LinkedBlockingQueue:有界队列
+
+SynchronousQueue：没有队列的queue。生产时没有消费的，直接自旋然后sleep。消费类似
 
 
 ####  数据库
