@@ -69,6 +69,18 @@ LinkedBlockingQueue:有界队列
 
 SynchronousQueue：没有队列的queue。生产时没有消费的，直接自旋然后sleep。消费类似
 
+##### 优秀java数据结构
+
+###### LongAdder
+
+java8解决CAS大量线程空循环
+
+1、线程不多时使用base变量来累加
+
+2、线程竞争激励后使用cell数组(初始2，只要有竞争同一个cell会扩容，直到大于等于cpu个数)
+
+说明：a、这样保证了只有一个线程来操作同一个cell。b、线程和数据对应关系是根据线程的一个变量threadLocalRandomProbe&(size-1)
+
 
 ####  数据库
 
@@ -359,3 +371,22 @@ kafka有3中ack机制：0：不等待应答；1等待leader应答；-1等待lead
 master/slave即为主从，一般用于数据库场景。master写，slave读
 
 leader/follower其实是为高可用准备。follower只承担副本的作用，当leader宕机后在多个follower选举出leader
+
+##### 秒杀系统
+
+核心问题是高并发。处理方案：流量控制、资源隔离(不影响其他业务，可以把秒杀的数据库、缓存单独申请资源)
+
+业务方面：分时段秒杀、品类分天优惠等等
+
+1、客户端页面CDN缓存
+
+2、网关：黑名单、ip刷单问题
+
+3、流量控制(sentinel 和 spring cloud gateway)
+
+4、服务端处理并发(MQ来排队,如果库存没了，直接返回失败)
+
+5、MQ消费，处理商品扣减->数据库
+
+
+
