@@ -83,6 +83,23 @@ java8解决CAS大量线程空循环
 
 说明：a、这样保证了只有一个线程来操作同一个cell。b、线程和数据对应关系是根据线程的一个变量threadLocalRandomProbe&(size-1)
 
+#### Spring
+
+##### Spring Boot 是如何进行自动装配的
+
+1、@SpringBootApplication对应的@EnableAutoConfiguration，导入AutoConfigurationImportSelector.class
+
+2、加载MEAT-INF/spring.factories下的文件
+
+3、文件下都是Config类，使用@Conditional注解，根据是否引入class、是否有对应配置等再加载bean
+
+##### Spring三级缓存
+
+1、初始化、装配完的bean
+
+2、初始化，但是没有装配bean的早起bean
+
+3、bean工厂。bean可能会有AOP的情况，所以使用工厂来处理
 
 ####  数据库
 
