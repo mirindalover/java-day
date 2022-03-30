@@ -61,6 +61,8 @@ CMS：是为了影响用户时间最短，回收的某个阶段可以用户线�
 >
 > 6、独享锁、共享锁：也是基于AQS，有一个写锁和读锁。拆分state标识2个锁的锁个数。有读锁时不能申请写锁，有写锁时读锁阻塞。
 
+锁消除：编译期间锁优化。认为没有加锁的必要（比如，锁加到了局部变量上）
+
 ##### 线程池
 
 参数：核心线程数、最大线程数、keepalivetime、队列、拒绝策略
@@ -90,7 +92,7 @@ java8解决CAS大量线程空循环
 
 1、mysql数据结构
 
-> 1、采用B+树结构：非叶子结点不存储data，只存储指针。叶子结点只存储data；每个叶子结点有指向相邻叶子结点的指针
+> 1、采用B+树结构：非叶子结点不存储data，只存储指针。叶子结点存储data；每个叶子结点有指向相邻叶子结点的指针
 
 2、索引
 
@@ -124,9 +126,15 @@ java8解决CAS大量线程空循环
 >
 > next-key lock(间隙锁+行锁)：在update、delete时在mysql索引扫描过的记录，和相邻的键值(在可重复读级别解决幻读问题)。本质是锁住B+树的左右索引指针，保证前后不能插入数据
 
+共享锁：lock in share mode
+
+排它锁：update、delete、insert、for update
+
+意向锁：申请行锁时，先申请意向锁。表示我表中有一行在使用锁。当表锁来时，判断有意向锁，就等待
+
 6、日志
 
-> binlog：mysql的server层。归档日志。可以用来恢复数据
+> binlog：mysql的server层。归档日志。可以用来恢复数据。记录的是具体sql
 >
 > redo log：InnoDB的日志。数据更新时先写日志，等周期或者日志满再刷到磁盘，提供了crash-safe能力。即WAL(write-ahead loggin,预写日志)。其实是为了Buffer Pool问题引入的(InnoDB为了提升效率，把部分数据也映射，作为数据库的缓冲，会先写Buffer Pool，定期刷新到磁盘)
 >
@@ -371,6 +379,19 @@ kafka有3中ack机制：0：不等待应答；1等待leader应答；-1等待lead
 master/slave即为主从，一般用于数据库场景。master写，slave读
 
 leader/follower其实是为高可用准备。follower只承担副本的作用，当leader宕机后在多个follower选举出leader
+
+##### 大数据
+
+HDFS：分布式文件存储。由NameNode和DataNode组成
+
+###### Presto
+
+基于内存计算的引擎
+
+主从式。主节点coordinator负责Sql优化和执行计划生成。同时管理整个集群的内存管理
+
+
+
 
 ##### 秒杀系统
 
