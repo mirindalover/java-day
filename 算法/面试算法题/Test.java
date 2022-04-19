@@ -31,7 +31,6 @@ public class Test {
                 break;
             }
         }
-        Collections.reverse(firstMap);
         return false;
     }
 
