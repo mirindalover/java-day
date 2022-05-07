@@ -181,9 +181,9 @@ java8解决CAS大量线程空循环
 >
 > next-key lock(间隙锁+行锁)：在update、delete时在mysql索引扫描过的记录，和相邻的键值(在可重复读级别解决幻读问题)。本质是锁住B+树的左右索引指针，保证前后不能插入数据
 
-共享锁：lock in share mode
+共享锁：lock in share mode (当前读取)
 
-排它锁：update、delete、insert、for update
+排它锁：update、delete、insert、for update (当前读取)
 
 意向锁：申请行锁时，先申请意向锁。表示我表中有一行在使用锁。当表锁来时，判断有意向锁，就等待
 
