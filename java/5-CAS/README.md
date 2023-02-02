@@ -1,13 +1,19 @@
 ##### 如何实现
 
 ```java
-PROBE = UNSAFE.objectFieldOffset
+offset = UNSAFE.objectFieldOffset
     (tk.getDeclaredField("threadLocalRandomProbe"));
 ```
 
 使用UNSAFE获取对象属性在对象中的偏移量
 
 通过UNSAFE的方法可以实现CAS操作
+
+```java
+boolean cas = UNSAFE.compareAndSwapLong(this, offset, cmp, val);
+```
+
+> 并发包下 AtomicInteger、AtomicLong都是采用CAS的方式解决多线程问题
 
 ##### @sun.misc.Contended
 
