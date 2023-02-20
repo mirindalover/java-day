@@ -8,3 +8,24 @@
 #### 叶子结点
 
 树中最底端的节点，叶子节点没有子节点
+
+#### 二叉树
+
+基本可以通过递归去做
+
+如果要求使用非递归方式，可以使用迭代循环的方式去做
+
+> 使用栈(Stack)来维护节点
+
+```java
+	Stack<TreeNode> stack = new Stack();
+	while(root != null || !stack.isEmpty()){
+		//中、后序遍历就把想要的先放进stack
+		//前序遍历先value再放到stack
+	}
+```
+
+
+#### 动态规划
+
+
