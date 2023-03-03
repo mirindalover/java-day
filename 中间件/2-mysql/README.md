@@ -83,7 +83,7 @@ mysql5.6及其以前版本索引默认最大长度为767byte(使用utf-8正好�
 
 1、最左前缀匹配原则
 
-> mysql索引是排序好的，一直向右匹配直到遇到范围查询(><between、like)
+> mysql索引是排序好的，一直向右匹配直到遇到范围查询(>< between、like)
 >
 > 例：(a,b,c,d)索引使用a = 1 and b = 2 and c > 3 and d = 4查询只使用了abc索引
 
@@ -99,7 +99,27 @@ mysql5.6及其以前版本索引默认最大长度为767byte(使用utf-8正好�
 
 #### 锁
 
-表级锁、行级锁
+##### 表锁
+
+1、表锁
+
+> lock table ... read/write 会使用表锁
+
+update t set colunm_1 += 1 where colunm_1 = xx
+
+如果column_1没有索引,加表锁
+
+2、原数据锁(MDL锁)
+
+与java中的读写锁类似，保证DDL和DML操作的一致性
+
+> insert、delete、select、delete 都会先获取MDL读锁
+
+> 数据库表结构变更，先获取MDL写锁
+
+MDL的申请会形成一个队列，写锁优先级高于读锁。一出现写锁，会阻塞后续的所有操作
+
+##### 行级锁
 
 行锁实现：InnoDB通过给索引上的索引项加锁实现的
 
@@ -109,17 +129,25 @@ mysql5.6及其以前版本索引默认最大长度为767byte(使用utf-8正好�
 >
 >若没有索引，则使用表锁
 
-MDL锁（metadata lock）：保证DDL和DML操作的一致性
-
 next-key lock(间隙锁和行锁合称):只出现在可重复度级别，为了解决幻读问题
 
 > 在update、delete操作时，mysql锁定where扫描过的所有索引记录，还会锁定相邻的键值，即所谓的next-key
 >
 > 原因：B+树结构中，其实是锁住索引对应的左右索引指针，保证前后不能插入数据
 
-共享锁：lock in share mode
+##### 死锁
 
-排它锁：update、delete、insert、for update
+1、设置获取锁等待超时时间(不推荐)
+
+2、开启死锁检测
+
+> mysql发现死锁，则主动回滚其中的某一个事务
+
+##### 其他锁
+
+共享锁：lock in share mode	对结果每行加共享锁
+
+排它锁：update、delete、insert、for update。其他事务不能对锁住的数据再加锁
 
 意向锁：申请行锁时，先申请意向锁。表示我表中有一行在使用锁。当表锁来时，判断有意向锁，就等待
 
@@ -193,11 +221,29 @@ MVCC读取的是快照读
 >
 > 唯一索引无法使用(唯一索引需要判断唯一性，必须加载页)。普通索引插入更新可以使用，后台定期刷新到磁盘
 
+2.1 order Buffer、join Buffer
+
+> order buffer用来排序:如果排序字段能在内存中完成排序则使用内存，否则使用磁盘创建排序文件
+
+> join buffer：当被驱动表中链接字段没有索引时,整个过程在join buffer中。内存不够时,驱动表字段数据在内存中，分段加载被驱动表的数据来比较
+
 3、Adaptive Hash Index：自适应哈希索引，使用索引关键字的前缀构建哈希索引，提升查询速度(不可人为控制)
 
 > 索引直接指向数据页位置，避免回表
 
 4、Log Buffer：日志缓冲区，保存要写入磁盘上的日志文件的数据，缓冲区的内容定期刷新到磁盘上。
+
+5、double write buffer:与其他buffer不同，其他都是内存buffer，这个是内存/磁盘2层结构
+
+> 内存buffer刷新到磁盘的时候，会进行页的写入(系统一页4k，bufer1页是16k。1个buffer页->4个系统页)
+
+> 如果写buffer时断电会造成页数据不完整
+
+由于redo log只能保证在页完整时，进行恢复。所以写时需要 使用另一块磁盘保证
+
+> buffer写入时先写 double write buffer
+> dwb的内存刷到dwb磁盘
+> dwb内存再刷到数据磁盘上
 
 
 #### 日志
