@@ -1,5 +1,21 @@
 ### java锁
 
+#### synchronized
+
+无锁-偏向锁-轻量级锁-重量级锁
+
+对象头保存内容：标示(锁类型),mark word
+
+##### 偏向锁
+
+mark word区保存了锁对应的线程id，其他线程获取锁时使用cas设置失败后开始自旋
+
+##### 轻量级锁
+
+自选一定时间后，仍然获取不到。开始升级
+
+吧mark down区域复制到线程栈中，对象头对应区域存栈对应的地址
+
 
 #### AQS(AbstractQueuedSynchronizer)
 

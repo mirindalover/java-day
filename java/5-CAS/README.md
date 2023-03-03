@@ -14,6 +14,8 @@ boolean cas = UNSAFE.compareAndSwapLong(this, offset, cmp, val);
 ```
 
 > 并发包下 AtomicInteger、AtomicLong都是采用CAS的方式解决多线程问题
+>
+> AtomicInteger使用incrementAndGet时，先读取，再用cas设置，设置失败后再循环读取设置
 
 ##### @sun.misc.Contended
 

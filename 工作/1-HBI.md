@@ -27,7 +27,7 @@
 
 所有任务都是用xxlJob来调起，这样方便失败重试
 
-##### 原子表更新shua
+##### 原子表更新
 
 > bi表对应一个大仓的Gauss表
 
@@ -119,12 +119,6 @@
 
 
 
-
-
-
-
-
-
 #### OpenFeign
 
 基于Ribbon的一个.具有负载均衡功能的声明的REST服务(http)
@@ -137,9 +131,9 @@
 
 #### Eureka
 
-一个简单的注册中心
+一个简单的注册中心,采用CS架构
 
-分为sEureka Server、Service Provider、Service Consumer
+分为Eureka Server、Service Provider、Service Consumer
 
 server直接启动一个spring-clound程序，开启@EnableEurekaServer即可
 

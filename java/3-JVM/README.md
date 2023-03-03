@@ -142,4 +142,12 @@ G1:适用于新生代和老年代(复制+标记整理)
 ###### G1
 
 > 将堆空间分成多个Regin,每个区域独立进行垃圾回收.回收线程和用户线程并发
+>
+> 大对象(超过regin的50%)放到单独的区域，叫humongous
+>
+> fullGC很慢，切换成Seiral收集器(单线程的标记、清理和压缩整理)
+
+
+XX:InitiatingHeapOccupancyPercent是整个堆使用量与堆总体容量的比值；
+如果你使用的JDK版本在8b12之后（包括大版本9、10、11…），即XX:InitiatingHeapOccupancyPercent是老年代大小与堆总体容量的比值
 
