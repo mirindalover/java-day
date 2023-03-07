@@ -207,6 +207,8 @@ MVCC读取的是快照读
 
 #### 内存结构
 
+![innodb_内存架构](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/resource/mysql_innodb%E6%9E%B6%E6%9E%84.png)
+
 1、Buffer Pool：缓冲池，是主内存中的一个区域，在InnoDB访问表和索引数据时会在其中进行高速缓存，大量减少磁盘IO操作，提升效率。
 
 > 初始化时申请连续的内存空间，以页为单位来缓存数据
