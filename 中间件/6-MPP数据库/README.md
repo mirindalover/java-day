@@ -54,6 +54,8 @@ Facebook开源的高性能持久化KV存储
 
 RocksDB快的原因是存储使用了LSM-Tree的数据结构(内存+磁盘。同时数据分层存储)
 
+![avatar](../resource/LSM-Tree架构.jpeg)
+
 写入流程：
 
 1、kv写入日志中(磁盘)，用于故障恢复
