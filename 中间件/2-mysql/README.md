@@ -235,6 +235,11 @@ MVCC读取的是快照读
 
 4、Log Buffer：日志缓冲区，保存要写入磁盘上的日志文件的数据，缓冲区的内容定期刷新到磁盘上。
 
+> 批量写的思想
+	
+缺点就是会导致数据丢失。
+innodb_flush_log_at_trx_commit 值0、1、2，分别表示:每秒写page cache并且刷新到磁盘、每次事务提交写page cache且刷新到磁盘、每次事务提交写page cache 每秒刷新到磁盘
+
 5、double write buffer:与其他buffer不同，其他都是内存buffer，这个是内存/磁盘2层结构
 
 > 内存buffer刷新到磁盘的时候，会进行页的写入(系统一页4k，bufer1页是16k。1个buffer页->4个系统页)

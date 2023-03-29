@@ -99,6 +99,8 @@ singletonFactories 三级缓存，用于保存bean创建工厂，以便于后面
 >
 > 如果A有@Async，AB循环依赖，A先加载，B加载时会把A放到二级缓存。但当A属性注入完扫描方法注解时生成代理类后，A初始化完成。检查Bean发现代理类和二级缓存中的A不一致
 
+
+
 #### Spring bean指定顺序加载
 
 使用@DependsOn指定先后关系
