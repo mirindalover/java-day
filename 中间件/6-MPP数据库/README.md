@@ -52,6 +52,8 @@ Facebook开源的高性能持久化KV存储
 
 ##### LSM-Tree
 
+LSM-Tree采用了批量写的思想，同时不让页产生分裂，直接合并页
+
 RocksDB快的原因是存储使用了LSM-Tree的数据结构(内存+磁盘。同时数据分层存储)
 
 ![lsm-tree](https://github.com/mirindalover/java-day/blob/master/%E4%B8%AD%E9%97%B4%E4%BB%B6/resource/LSM-Tree%E6%9E%B6%E6%9E%84.jpeg)
